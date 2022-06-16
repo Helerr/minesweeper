@@ -1,53 +1,75 @@
 package minesweeper;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class MineField {
-    private String[][] field;
+    final int SIZE;
+    final char UNKNOWN = '.';
+    final char MINE = 'X';
 
-    public MineField(int dimensions) {
-        this.field = new String[dimensions][dimensions];
-    }
+    Cell[][] cells;
 
-    public void populateField() {
-        for (String[] strings : field) {
-            Arrays.fill(strings, ".");
+    public MineField(int size, int mines) {
+        this.SIZE = size;
+        cells = new Cell[SIZE][SIZE];
+        int minesAmount = 0;
+
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells.length; j++) {
+                cells[i][j] = new Cell();
+            }
+        }
+
+        while (minesAmount < mines) {
+            Random random = new Random();
+            int row = random.nextInt(SIZE);
+            int col = random.nextInt(SIZE);
+            if (!cells[row][col].isMine) {
+                cells[row][col].isMine = true;
+                minesAmount++;
+            }
         }
     }
 
+    public int checkNumberOfMinesAround(int row, int col) {
+        int result = 0;
+
+        if (cells[row][col].isMine) {
+            return -1;
+        }
+        int up, down, left, right;
+        up = down = left = right = 1;
+
+
+        if (row == 0) up = 0;
+        if (row == cells.length - 1) down = 0;
+        if (col == 0) left = 0;
+        if (col == cells.length - 1) right = 0;
+
+        for (int i = row - up; i <= row + down; i++) {
+            for (int j = col - left; j <= col + right; j++) {
+                if (cells[i][j].isMine) {
+                    result++;
+                }
+            }
+        }
+        return result;
+    }
+
+
     public void displayField() {
-        for (String[] strings : field) {
-            for (String string : strings) {
-                System.out.print(string);
+        for (int i = 0; i < cells.length; i++) {
+            for (int j = 0; j < cells.length; j++) {
+                int numberOfMine = checkNumberOfMinesAround(i, j);
+                if (numberOfMine == -1) {
+                    System.out.print(MINE);
+                } else if (numberOfMine == 0) {
+                    System.out.print(UNKNOWN);
+                } else {
+                    System.out.print(numberOfMine);
+                }
             }
             System.out.println();
         }
-    }
-
-    public void addMines(int minesAmount) {
-        Random random = new Random();
-        int row = random.nextInt(field.length);
-        int col = random.nextInt(field.length);
-        while (minesAmount > 0) {
-            if (currentPositionAlreadyHaveAMine(row, col)) {
-                while (currentPositionAlreadyHaveAMine(row, col)) {
-                    row = random.nextInt(field.length);
-                    col = random.nextInt(field.length);
-                }
-            }
-            field[row][col] = "X";
-            row = random.nextInt(field.length);
-            col = random.nextInt(field.length);
-
-            minesAmount--;
-        }
-    }
-
-    private boolean currentPositionAlreadyHaveAMine(int row, int col) {
-        if ("X".equals(field[row][col])) {
-            return true;
-        }
-        return false;
     }
 }
